@@ -46,9 +46,6 @@ def test_renyi_h0_and_h1():
     res_h1 = RenyiNystroemKSD(p=p, k=k, alpha=0.01, n_simulate=800, seed=123).perform_test(X_h1)
     assert res_h1["pvalue"] < 0.05  # should reject under H1
 
-
-
-
 if __name__ == "__main__":
     test_renyi_h_p_matches_reference_gauss()
     test_renyi_stat_close_to_quadratic()
