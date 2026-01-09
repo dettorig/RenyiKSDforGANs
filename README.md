@@ -32,8 +32,6 @@ RenyiKSDforGANs/
 ├── src/
 │   ├── notebooks/
 │   │   ├── ksd_gan_cifar10_training.ipynb    # Main training notebook (our implementation)
-│   │   ├── ksd_gan_cifar10_backup.ipynb      # Backup/alternative implementation (our implementation)
-│   │   └── RenyiKSDtorch.ipynb               # Additional experiments (our implementation)
 │   ├── renyiksd.py                    # Our Rényi KSD adaptation (original implementation)
 │   ├── score.py                       # Our score function utilities (original implementation)
 │   ├── goftest.py                     # Goodness-of-fit testing
@@ -61,20 +59,20 @@ As part of our research, we proposed replicating the GAN architecture as done in
 
 ### Phase 1: Distribution Discrimination Testing
 
-**Motivation:** Standard Kernel Stein Discrepancy (KSD) computation has O(n²) complexity, which becomes prohibitively expensive for large datasets. We use the **Nyström acceleration method** to reduce this to O(m²) where m << n, by selecting only m landmark points instead of using all n points.
+**Motivation:** Standard Kernel Stein Discrepancy (KSD) computation has O(n²) complexity, which becomes prohibitively expensive for large datasets. We use the **Nyström acceleration method** to reduce this to $O(m^3)$ where m << n, by selecting only m landmark points instead of using all n points.
 
 **Our Contribution:** Instead of randomly selecting landmarks (as in the base Nyström-KSD implementation), we choose landmarks that **maximize entropy** to select the most informative points. This ensures we get the best approximation quality.
 
 **What we tested:**
 - **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`) - reduces complexity but landmarks may not be optimal
-- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses entropy-maximizing landmark selection (minimizes quadratic Rényi energy `1^T K 1`) - same O(m²) complexity but with more informative landmarks
+- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses entropy-maximizing landmark selection (minimizes quadratic Rényi energy `1^T K 1`) - same $O(m^3)$ complexity but with more informative landmarks
 - **Goodness-of-fit testing** (`src/test_renyiksd.py`): Verified that our entropy-based selection can effectively distinguish distributions
 
 **Test Results:**
 - ✅ All tests passed
 - ✅ Rényi landmark selection successfully distinguishes distributions (H0 vs H1 hypothesis testing)
 - ✅ Validated that our method works before moving to GAN implementation
-- ✅ Achieved O(m²) complexity instead of O(n²) while maintaining discrimination power
+- ✅ Achieved $O(m^3)$ complexity instead of O(n²) while maintaining discrimination power
 
 **Key Insight:** By selecting the most informative landmarks (maximizing entropy), we can achieve the same distribution discrimination capability, making KSD computation feasible for large-scale applications like GAN training. See `src/README.md` for more details on Phase 1 testing.
 
@@ -91,7 +89,7 @@ After validating our Rényi landmark selection approach in Phase 1, we implement
 **Key Findings:**
 - The standard GAN baseline achieved significantly better quantitative metrics (lower FID and KID indicate better quality)
 - KSD-GAN training showed higher loss values and more instability, particularly at low noise levels (small t values)
-- The Rényi-Nyström KSD implementation successfully reduced computational complexity from O(n²) to O(m²) where m << n
+- The Rényi-Nyström KSD implementation successfully reduced computational complexity from O(n²) to $O(m^3)$ where m << n
 - Training stability was improved through careful gradient flow management (gradients only through fake samples)
 
 ### Qualitative Observations & Visual Results
@@ -312,8 +310,6 @@ The following components were implemented from scratch for this project:
      - Feature normalization and bandwidth selection (median heuristic)
      - MMD stabilizer implementation
      - All training code, evaluation metrics, and visualizations
-   - **`ksd_gan_cifar10_backup.ipynb`**: Backup/alternative implementation with similar functionality
-   - **`RenyiKSDtorch.ipynb`**: Additional experiments and testing
    - **Note**: All notebooks contain standalone PyTorch implementations. `src/renyiksd.py` and `src/score.py` are reference/utility implementations that can be used independently.
 
 4. **Generator Architecture**:
