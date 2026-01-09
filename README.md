@@ -57,6 +57,61 @@ As part of our research, we proposed replicating the GAN architecture as done in
    - Available on Kaggle: https://www.kaggle.com/datasets/ayush1220/cifar10
    - Used as the main benchmark for real-world application scenarios
 
+## Main Results
+
+### Phase 1: Distribution Discrimination Testing
+
+**Motivation:** Standard Kernel Stein Discrepancy (KSD) computation has O(n²) complexity, which becomes prohibitively expensive for large datasets. We use the **Nyström acceleration method** to reduce this to O(m²) where m << n, by selecting only m landmark points instead of using all n points.
+
+**Our Contribution:** Instead of randomly selecting landmarks (as in the base Nyström-KSD implementation), we choose landmarks that **maximize entropy** to select the most informative points. This ensures we get the best approximation quality with fewer landmarks.
+
+**What we tested:**
+- **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`) - reduces complexity but landmarks may not be optimal
+- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses entropy-maximizing landmark selection (minimizes quadratic Rényi energy `1^T K 1`) - same O(m²) complexity but with more informative landmarks
+- **Goodness-of-fit testing** (`src/test_renyiksd.py`): Verified that our entropy-based selection can effectively distinguish distributions
+
+**Test Results:**
+- ✅ All tests passed
+- ✅ Rényi landmark selection successfully distinguishes distributions (H0 vs H1 hypothesis testing)
+- ✅ Validated that our method works before moving to GAN implementation
+- ✅ Achieved O(m²) complexity instead of O(n²) while maintaining discrimination power
+
+**Key Insight:** By selecting the most informative landmarks (maximizing entropy), we can achieve the same distribution discrimination capability with far fewer points, making KSD computation feasible for large-scale applications like GAN training. See `src/README.md` for more details on Phase 1 testing.
+
+### Phase 2: Quantitative Evaluation (CIFAR-10)
+
+After validating our Rényi landmark selection approach in Phase 1, we implemented the full GAN training pipeline in the notebooks. We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Distance (FID) and Kernel Inception Distance (KID):
+
+| Method | FID | KID |
+|--------|-----|-----|
+| **Standard GAN** | **104.02** | **0.0669** |
+| **KSD-GAN (Random Projection)** | 304.81 | 0.3159 |
+| **KSD-GAN (ResNet Features)** | Similar range | Similar range |
+
+**Key Findings:**
+- The standard GAN baseline achieved significantly better quantitative metrics (lower FID and KID indicate better quality)
+- KSD-GAN training showed higher loss values and more instability, particularly at low noise levels (small t values)
+- The Rényi-Nyström KSD implementation successfully reduced computational complexity from O(n²) to O(m²) where m << n
+- Training stability was improved through careful gradient flow management (gradients only through fake samples)
+
+### Qualitative Observations & Visual Results
+- **Training Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps (t < 100)
+- **Sample Quality:** Visual inspection showed that KSD-GAN samples were generated but with lower fidelity compared to standard GAN
+- **Computational Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost
+
+To evaluate the generative performance, we compared visual outputs across three configurations. While KSD-based methods successfully generated recognizable image patterns, the adversarial baseline remained superior in terms of high-frequency detail.
+
+| Training Method | Sample Generation | Qualitative Analysis |
+| :--- | :---: | :--- |
+| **KSD-GAN (Random Projection)** | <img src="https://github.com/user-attachments/assets/6da34f49-5f55-46cc-bd25-67622b083d92" width="300" /> | **Primary Result:** Successfully captures the global color distribution and basic shapes of CIFAR-10 classes. Our most stable KSD variant. |
+| **KSD-GAN (ResNet Features)** | <img src="https://github.com/user-attachments/assets/fc9b2c15-0491-416c-a458-0bf94e1580f8" width="300" /> | **Secondary Result:** Features from pre-trained ResNet-18 (after 3h training) resulted in lower fidelity and less structural coherence compared to random projection. |
+| **Standard GAN (Baseline)** | <img src="https://github.com/user-attachments/assets/37beb60a-24d1-4dcd-9544-8331eb9ecec6" width="300" /> | **Reference:** The adversarial discriminator produces the sharpest results, highlighting the performance gap our KSD approach aims to bridge. |
+
+**Summary of Findings:**
+* **Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps ($t < 100$).
+* **Fidelity:** Visual inspection confirms KSD-GAN samples are recognizable but have lower fidelity compared to standard GANs.
+* **Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost, making kernelized GAN training more feasible.
+
 ### Implementation Approach
 
 **Code Sharing and Version Control:**
@@ -130,60 +185,6 @@ During the project development, we experimented with several approaches and conf
 
 This iterative experimentation process helped us understand the trade-offs between computational efficiency, training stability, and sample quality in KSD-based GAN training.
 
-## Main Results
-
-### Phase 1: Distribution Discrimination Testing
-
-**Motivation:** Standard Kernel Stein Discrepancy (KSD) computation has O(n²) complexity, which becomes prohibitively expensive for large datasets. We use the **Nyström acceleration method** to reduce this to O(m²) where m << n, by selecting only m landmark points instead of using all n points.
-
-**Our Contribution:** Instead of randomly selecting landmarks (as in the base Nyström-KSD implementation), we choose landmarks that **maximize entropy** to select the most informative points. This ensures we get the best approximation quality with fewer landmarks.
-
-**What we tested:**
-- **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`) - reduces complexity but landmarks may not be optimal
-- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses entropy-maximizing landmark selection (minimizes quadratic Rényi energy `1^T K 1`) - same O(m²) complexity but with more informative landmarks
-- **Goodness-of-fit testing** (`src/test_renyiksd.py`): Verified that our entropy-based selection can effectively distinguish distributions
-
-**Test Results:**
-- ✅ All tests passed
-- ✅ Rényi landmark selection successfully distinguishes distributions (H0 vs H1 hypothesis testing)
-- ✅ Validated that our method works before moving to GAN implementation
-- ✅ Achieved O(m²) complexity instead of O(n²) while maintaining discrimination power
-
-**Key Insight:** By selecting the most informative landmarks (maximizing entropy), we can achieve the same distribution discrimination capability with far fewer points, making KSD computation feasible for large-scale applications like GAN training. See `src/README.md` for more details on Phase 1 testing.
-
-### Phase 2: Quantitative Evaluation (CIFAR-10)
-
-After validating our Rényi landmark selection approach in Phase 1, we implemented the full GAN training pipeline in the notebooks. We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Distance (FID) and Kernel Inception Distance (KID):
-
-| Method | FID | KID |
-|--------|-----|-----|
-| **Standard GAN** | **104.02** | **0.0669** |
-| **KSD-GAN (Random Projection)** | 304.81 | 0.3159 |
-| **KSD-GAN (ResNet Features)** | Similar range | Similar range |
-
-**Key Findings:**
-- The standard GAN baseline achieved significantly better quantitative metrics (lower FID and KID indicate better quality)
-- KSD-GAN training showed higher loss values and more instability, particularly at low noise levels (small t values)
-- The Rényi-Nyström KSD implementation successfully reduced computational complexity from O(n²) to O(m²) where m << n
-- Training stability was improved through careful gradient flow management (gradients only through fake samples)
-
-### Qualitative Observations & Visual Results
-- **Training Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps (t < 100)
-- **Sample Quality:** Visual inspection showed that KSD-GAN samples were generated but with lower fidelity compared to standard GAN
-- **Computational Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost
-
-To evaluate the generative performance, we compared visual outputs across three configurations. While KSD-based methods successfully generated recognizable image patterns, the adversarial baseline remained superior in terms of high-frequency detail.
-
-| Training Method | Sample Generation | Qualitative Analysis |
-| :--- | :---: | :--- |
-| **KSD-GAN (Random Projection)** | <img src="https://github.com/user-attachments/assets/6da34f49-5f55-46cc-bd25-67622b083d92" width="300" /> | **Primary Result:** Successfully captures the global color distribution and basic shapes of CIFAR-10 classes. Our most stable KSD variant. |
-| **KSD-GAN (ResNet Features)** | <img src="https://github.com/user-attachments/assets/fc9b2c15-0491-416c-a458-0bf94e1580f8" width="300" /> | **Secondary Result:** Features from pre-trained ResNet-18 (after 3h training) resulted in lower fidelity and less structural coherence compared to random projection. |
-| **Standard GAN (Baseline)** | <img src="https://github.com/user-attachments/assets/37beb60a-24d1-4dcd-9544-8331eb9ecec6" width="300" /> | **Reference:** The adversarial discriminator produces the sharpest results, highlighting the performance gap our KSD approach aims to bridge. |
-
-**Summary of Findings:**
-* **Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps ($t < 100$).
-* **Fidelity:** Visual inspection confirms KSD-GAN samples are recognizable but have lower fidelity compared to standard GANs.
-* **Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost, making kernelized GAN training more feasible.
 ## Setup
 
 ### Prerequisites
