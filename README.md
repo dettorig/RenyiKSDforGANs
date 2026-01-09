@@ -53,7 +53,7 @@ As part of our research, we proposed replicating the GAN architecture as done in
 **CIFAR-10 Dataset** (Primary Benchmark):
    - 60,000 32×32 color images in 10 classes
    - 6,000 images per class
-   - Split into 50,000 training images and 10,000 test images
+   - 50,000 training images
    - Available on Kaggle: https://www.kaggle.com/datasets/ayush1220/cifar10
    - Used as the main benchmark for real-world application scenarios
 
@@ -63,7 +63,7 @@ As part of our research, we proposed replicating the GAN architecture as done in
 
 **Motivation:** Standard Kernel Stein Discrepancy (KSD) computation has O(n²) complexity, which becomes prohibitively expensive for large datasets. We use the **Nyström acceleration method** to reduce this to O(m²) where m << n, by selecting only m landmark points instead of using all n points.
 
-**Our Contribution:** Instead of randomly selecting landmarks (as in the base Nyström-KSD implementation), we choose landmarks that **maximize entropy** to select the most informative points. This ensures we get the best approximation quality with fewer landmarks.
+**Our Contribution:** Instead of randomly selecting landmarks (as in the base Nyström-KSD implementation), we choose landmarks that **maximize entropy** to select the most informative points. This ensures we get the best approximation quality.
 
 **What we tested:**
 - **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`) - reduces complexity but landmarks may not be optimal
@@ -76,7 +76,7 @@ As part of our research, we proposed replicating the GAN architecture as done in
 - ✅ Validated that our method works before moving to GAN implementation
 - ✅ Achieved O(m²) complexity instead of O(n²) while maintaining discrimination power
 
-**Key Insight:** By selecting the most informative landmarks (maximizing entropy), we can achieve the same distribution discrimination capability with far fewer points, making KSD computation feasible for large-scale applications like GAN training. See `src/README.md` for more details on Phase 1 testing.
+**Key Insight:** By selecting the most informative landmarks (maximizing entropy), we can achieve the same distribution discrimination capability, making KSD computation feasible for large-scale applications like GAN training. See `src/README.md` for more details on Phase 1 testing.
 
 ### Phase 2: Quantitative Evaluation (CIFAR-10)
 
