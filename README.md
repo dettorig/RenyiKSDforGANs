@@ -9,6 +9,14 @@
 
 All code, data processing scripts, and notebooks are available in this repository. The repository includes everything needed to reproduce the results presented in this project.
 
+## Attribution and Acknowledgments
+
+**Code Development:** This code was developed with assistance from ChatGPT for implementation guidance. The core ideas and adaptations are our original work, with ChatGPT helping with implementation details and debugging.
+
+**Base Implementation:** This project builds upon the Nyström-KSD implementation from Kalinke, Szabó, and Sriperumbudur (AISTATS 2025). The original repository is available at [https://github.com/FlopsKa/nystroem-ksd](https://github.com/FlopsKa/nystroem-ksd) and is also included in the `nystroem-ksd/` directory. Our adaptations for GAN training are detailed in the "Code Description and Attribution" section below.
+
+
+
 ## Project Overview
 
 This project investigates replacing the classical adversarial discriminator in GAN training with a kernel-based distance metric, specifically Kernel Stein Discrepancy (KSD) with Rényi-based landmark selection. The goal is to assess whether a kernelized objective can provide an alternative that improves training stability and efficiency without compromising sample quality.
@@ -144,33 +152,7 @@ We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Di
 - **Sample Quality:** Visual inspection showed that KSD-GAN samples were generated but with lower fidelity compared to standard GAN
 - **Computational Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost
 
-## Installation and Setup
-
-### Quick Start (For Teaching Assistants)
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/dettorig/RenyiKSDforGANs
-   cd RenyiKSDforGANs
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   pip install torch torchvision diffusers numpy scipy matplotlib scikit-learn
-   ```
-
-3. **Open the main notebook:**
-   ```bash
-   jupyter notebook src/notebooks/ksd_gan_cifar10_training.ipynb
-   ```
-
-4. **Run all cells** - The notebook will automatically:
-   - Download CIFAR-10 dataset (if not already present)
-   - Download pretrained DDPM model from Hugging Face
-   - Train both KSD-GAN and standard GAN models
-   - Generate evaluation metrics and visualizations
-
-**Note:** For GPU acceleration, ensure CUDA is available. If using Google Colab, the notebook can be opened directly via the Colab badge at the top of the notebook.
+## Setup
 
 ### Prerequisites
 
@@ -179,19 +161,32 @@ We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Di
 - PyTorch 1.12+
 - Jupyter Notebook or Google Colab
 
-### Required Packages
+### Installation
 
-```bash
-pip install torch torchvision
-pip install diffusers
-pip install numpy scipy matplotlib
-pip install scikit-learn
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/dettorig/RenyiKSDforGANs
+   cd RenyiKSDforGANs
+   ```
 
-**Alternative (using requirements.txt):**
-```bash
-pip install -r requirements.txt  # If you create this file
-```
+2. **Install dependencies:**
+
+   **Option 1: Using requirements.txt (Recommended)**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+   **Option 2: Manual installation**
+   ```bash
+   pip install torch torchvision
+   pip install diffusers
+   pip install numpy scipy matplotlib
+   pip install scikit-learn
+   pip install autograd future past  # Required for Phase 1 testing code
+   pip install jupyter  # For running notebooks
+   ```
+
+   The `requirements.txt` file includes all dependencies needed for both Phase 1 (testing) and Phase 2 (GAN training) of the project.
 
 ### Data Setup
 
@@ -199,19 +194,15 @@ The CIFAR-10 dataset will be automatically downloaded when running the notebooks
 - Official: https://www.cs.toronto.edu/~kriz/cifar.html
 - Kaggle: https://www.kaggle.com/datasets/ayush1220/cifar10
 
-## How to Recreate Results
+**Note:** For GPU acceleration, ensure CUDA is available. If using Google Colab, the notebook can be opened directly via the Colab badge at the top of the notebook.
+
+## Result Replication
 
 ### Step 1: Environment Setup
 
-1. Clone this repository:
-```bash
-git clone https://github.com/dettorig/RenyiKSDforGANs
-cd RenyiKSDforGANs
-```
+1. Follow the Setup instructions above to clone the repository and install dependencies
 
-2. Install dependencies (see Installation section above)
-
-3. Ensure you have GPU access (CUDA) for efficient training
+2. Ensure you have GPU access (CUDA) for efficient training
 
 ### Step 2: Run Training Notebooks
 
@@ -301,6 +292,7 @@ The following components were implemented from scratch for this project:
 
 1. **Nyström-KSD Base Implementation** (`nystroem-ksd/` directory):
    - **Source:** This is the official repository for "Nyström Kernel Stein Discrepancy" by Kalinke, Szabó, and Sriperumbudur (AISTATS 2025)
+   - **Repository:** [https://github.com/FlopsKa/nystroem-ksd](https://github.com/FlopsKa/nystroem-ksd)
    - **What we used:** The base Nyström-KSD implementation from their repository
    - **What we modified:** We adapted it for GAN training in our notebooks, specifically:
      - Modified for feature-space Stein kernels (random projection and ResNet features)
@@ -396,6 +388,7 @@ Two feature map implementations:
 ## References
 
 1. **Kalinke, F., Szabó, Z., Sriperumbudur, B. K.** (2025). *Nyström Kernel Stein Discrepancy*. AISTATS 2025.  
+   - Repository: [https://github.com/FlopsKa/nystroem-ksd](https://github.com/FlopsKa/nystroem-ksd)
    - Original Nyström-KSD implementation repository included in `nystroem-ksd/` directory
    - Our adaptation for GAN training is in `src/notebooks/ksd_gan_cifar10_training.ipynb`
 
