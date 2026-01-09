@@ -32,22 +32,6 @@ This is the main notebook containing:
 - Contains the complete training pipeline from data loading to evaluation
 - **Note**: The notebooks are self-contained. `src/renyiksd.py` and `src/score.py` are reference implementations that can be used independently.
 
-### Backup Notebook
-
-**`ksd_gan_cifar10_backup.ipynb`** - Backup/alternative implementation
-
-- Similar structure to the main training notebook
-- Contains alternative implementations and experiments
-- Useful for reference and comparison
-
-### Additional Experiments
-
-**`RenyiKSDtorch.ipynb`** - Additional experiments and prototyping
-
-- Early experiments and development work
-- Prototyping different approaches
-- Additional analysis and visualizations
-
 ## Running the Notebooks
 
 1. **Prerequisites**: Install all dependencies (see main README.md)
