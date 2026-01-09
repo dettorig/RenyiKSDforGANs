@@ -29,11 +29,11 @@ RenyiKSDforGANs/
 ├── PROPOSAL.md                        # Project proposal document
 ├── src/
 │   ├── notebooks/
-│   │   ├── ksd_gan_cifar10_training.ipynb    # Main training notebook
-│   │   ├── ksd_gan_cifar10_backup.ipynb      # Backup/alternative implementation
-│   │   └── RenyiKSDtorch.ipynb               # Additional experiments
-│   ├── renyiksd.py                    # Our Rényi KSD adaptation (original work)
-│   ├── score.py                       # Our score function utilities (original work)
+│   │   ├── ksd_gan_cifar10_training.ipynb    # Main training notebook (our implementation)
+│   │   ├── ksd_gan_cifar10_backup.ipynb      # Backup/alternative implementation (our implementation)
+│   │   └── RenyiKSDtorch.ipynb               # Additional experiments (our implementation)
+│   ├── renyiksd.py                    # Our Rényi KSD adaptation (original implementation)
+│   ├── score.py                       # Our score function utilities (original implementation)
 │   ├── goftest.py                     # Goodness-of-fit testing
 │   ├── test_renyiksd.py               # Unit tests
 │   ├── kgof/                          # Kernel goodness-of-fit library
@@ -130,9 +130,25 @@ This iterative experimentation process helped us understand the trade-offs betwe
 
 ## Main Results
 
-### Quantitative Evaluation (CIFAR-10)
+### Phase 1: Distribution Discrimination Testing
 
-We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Distance (FID) and Kernel Inception Distance (KID):
+**Before implementing the GAN**, we first validated that our Rényi-based landmark selection method could effectively distinguish distributions compared to the standard Nyström approach (which uses random landmark selection).
+
+**What we tested:**
+- **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`)
+- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses Rényi-based landmark selection that minimizes quadratic Rényi energy
+- **Goodness-of-fit testing** (`src/test_renyiksd.py`): Verified that Rényi selection can distinguish distributions
+
+**Test Results:**
+- ✅ All tests passed
+- ✅ Rényi landmark selection successfully distinguishes distributions (H0 vs H1 hypothesis testing)
+- ✅ Validated that our method works before moving to GAN implementation
+
+**Key Insight:** This preliminary testing phase proved that Rényi landmark selection is effective for distribution discrimination, giving us confidence to proceed with GAN training. See `src/README.md` for more details on Phase 1 testing.
+
+### Phase 2: Quantitative Evaluation (CIFAR-10)
+
+After validating our Rényi landmark selection approach in Phase 1, we implemented the full GAN training pipeline in the notebooks. We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Distance (FID) and Kernel Inception Distance (KID):
 
 | Method | FID | KID |
 |--------|-----|-----|
@@ -245,6 +261,8 @@ The notebook includes evaluation code that:
 
 **Note on Code Development:** This code was developed with assistance from ChatGPT for implementation guidance. The core ideas and adaptations are our original work, with ChatGPT helping with implementation details and debugging.
 
+**All Notebooks:** All notebooks in `src/notebooks/` were implemented by us. They contain standalone PyTorch implementations that don't import from other source files in this repository.
+
 ### Original Implementation (Our Work)
 
 The following components were implemented from scratch for this project:
@@ -264,20 +282,22 @@ The following components were implemented from scratch for this project:
    - `load_cifar_batch()`: Utility for loading CIFAR-10 batches
    - **Note**: This is a standalone reference implementation. The notebooks contain inline PyTorch implementations.
 
-3. **Rényi-Nyström KSD Adaptation for GAN Training** (`src/notebooks/ksd_gan_cifar10_training.ipynb`):
-   - **This is our main original contribution** - adapting Nyström-KSD for GAN training
-   - Complete PyTorch implementation of Rényi-Nyström KSD with feature-space Stein kernels
-   - `RenyiNystroemKSD` class: PyTorch implementation optimized for GAN training
-   - `select_renyi_landmarks_stein()`: Rényi landmark selection for image data
-   - `score_fn_xt()`: Score function computation using pretrained DDPM
-   - Feature-space Stein kernel computation (random projection and ResNet features)
-   - Two-sample KSD estimator with gradient flow control
-   - Integration of KSD loss into GAN training loop
-   - Multi-timestep sampling strategy
-   - Feature normalization and bandwidth selection (median heuristic)
-   - MMD stabilizer implementation
-   - All training code, evaluation metrics, and visualizations
-   - **Note**: The notebooks contain standalone implementations. `src/renyiksd.py` and `src/score.py` are reference/utility implementations that can be used independently.
+3. **All Notebooks in `src/notebooks/`** (All implemented by us):
+   - **`ksd_gan_cifar10_training.ipynb`**: Main training notebook - **This is our main original contribution** - adapting Nyström-KSD for GAN training
+     - Complete PyTorch implementation of Rényi-Nyström KSD with feature-space Stein kernels
+     - `RenyiNystroemKSD` class: PyTorch implementation optimized for GAN training
+     - `select_renyi_landmarks_stein()`: Rényi landmark selection for image data
+     - `score_fn_xt()`: Score function computation using pretrained DDPM
+     - Feature-space Stein kernel computation (random projection and ResNet features)
+     - Two-sample KSD estimator with gradient flow control
+     - Integration of KSD loss into GAN training loop
+     - Multi-timestep sampling strategy
+     - Feature normalization and bandwidth selection (median heuristic)
+     - MMD stabilizer implementation
+     - All training code, evaluation metrics, and visualizations
+   - **`ksd_gan_cifar10_backup.ipynb`**: Backup/alternative implementation with similar functionality
+   - **`RenyiKSDtorch.ipynb`**: Additional experiments and testing
+   - **Note**: All notebooks contain standalone PyTorch implementations. `src/renyiksd.py` and `src/score.py` are reference/utility implementations that can be used independently.
 
 4. **Generator Architecture**:
    - Custom upsampling-based generator (UpBlock + GenX0)
