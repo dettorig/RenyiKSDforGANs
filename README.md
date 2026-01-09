@@ -162,12 +162,23 @@ After validating our Rényi landmark selection approach in Phase 1, we implement
 - The Rényi-Nyström KSD implementation successfully reduced computational complexity from O(n²) to O(m²) where m << n
 - Training stability was improved through careful gradient flow management (gradients only through fake samples)
 
-### Qualitative Observations
-
+### Qualitative Observations & Visual Results
 - **Training Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps (t < 100)
 - **Sample Quality:** Visual inspection showed that KSD-GAN samples were generated but with lower fidelity compared to standard GAN
 - **Computational Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost
 
+To evaluate the generative performance, we compared visual outputs across three configurations. While KSD-based methods successfully generated recognizable image patterns, the adversarial baseline remained superior in terms of high-frequency detail.
+
+| Training Method | Sample Generation | Qualitative Analysis |
+| :--- | :---: | :--- |
+| **KSD-GAN (Random Projection)** | <img src="https://github.com/user-attachments/assets/6da34f49-5f55-46cc-bd25-67622b083d92" width="300" /> | **Primary Result:** Successfully captures the global color distribution and basic shapes of CIFAR-10 classes. Our most stable KSD variant. |
+| **KSD-GAN (ResNet Features)** | <img src="https://github.com/user-attachments/assets/fc9b2c15-0491-416c-a458-0bf94e1580f8" width="300" /> | **Secondary Result:** Features from pre-trained ResNet-18 (after 3h training) resulted in lower fidelity and less structural coherence compared to random projection. |
+| **Standard GAN (Baseline)** | <img src="https://github.com/user-attachments/assets/37beb60a-24d1-4dcd-9544-8331eb9ecec6" width="300" /> | **Reference:** The adversarial discriminator produces the sharpest results, highlighting the performance gap our KSD approach aims to bridge. |
+
+**Summary of Findings:**
+* **Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps ($t < 100$).
+* **Fidelity:** Visual inspection confirms KSD-GAN samples are recognizable but have lower fidelity compared to standard GANs.
+* **Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost, making kernelized GAN training more feasible.
 ## Setup
 
 ### Prerequisites
