@@ -1,6 +1,8 @@
 # Accelerated Kernel Stein Discrepancy with Rényi Landmark Selection for Stable and Efficient GAN Training
 
 **Authors:** Michael Carlo, Giovanni Dettori, Ryan Gumsheimer  
+**Professor:** Austin J. Stromme
+
 **Date:** November 2025
 
 ## Repository Link
@@ -86,8 +88,8 @@ As part of our research, we proposed replicating the GAN architecture as done in
 
 **Training Time Estimates:**
 - **KSD-GAN Training:** ~2-4 hours on a single GPU (depending on hardware and feature map choice)
-- **Standard GAN Training:** ~1-2 hours on a single GPU
-- **Evaluation (FID/KID):** ~30 minutes for 5,000 samples
+- **Standard GAN Training:** ~ minutes on a single GPU
+- **Evaluation (FID/KID):** ~ minutes for 5,000 samples
 
 ### What We Tried
 
@@ -132,19 +134,22 @@ This iterative experimentation process helped us understand the trade-offs betwe
 
 ### Phase 1: Distribution Discrimination Testing
 
-**Before implementing the GAN**, we first validated that our Rényi-based landmark selection method could effectively distinguish distributions compared to the standard Nyström approach (which uses random landmark selection).
+**Motivation:** Standard Kernel Stein Discrepancy (KSD) computation has O(n²) complexity, which becomes prohibitively expensive for large datasets. We use the **Nyström acceleration method** to reduce this to O(m²) where m << n, by selecting only m landmark points instead of using all n points.
+
+**Our Contribution:** Instead of randomly selecting landmarks (as in the base Nyström-KSD implementation), we choose landmarks that **maximize entropy** to select the most informative points. This ensures we get the best approximation quality with fewer landmarks.
 
 **What we tested:**
-- **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`)
-- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses Rényi-based landmark selection that minimizes quadratic Rényi energy
-- **Goodness-of-fit testing** (`src/test_renyiksd.py`): Verified that Rényi selection can distinguish distributions
+- **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`) - reduces complexity but landmarks may not be optimal
+- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses entropy-maximizing landmark selection (minimizes quadratic Rényi energy `1^T K 1`) - same O(m²) complexity but with more informative landmarks
+- **Goodness-of-fit testing** (`src/test_renyiksd.py`): Verified that our entropy-based selection can effectively distinguish distributions
 
 **Test Results:**
 - ✅ All tests passed
 - ✅ Rényi landmark selection successfully distinguishes distributions (H0 vs H1 hypothesis testing)
 - ✅ Validated that our method works before moving to GAN implementation
+- ✅ Achieved O(m²) complexity instead of O(n²) while maintaining discrimination power
 
-**Key Insight:** This preliminary testing phase proved that Rényi landmark selection is effective for distribution discrimination, giving us confidence to proceed with GAN training. See `src/README.md` for more details on Phase 1 testing.
+**Key Insight:** By selecting the most informative landmarks (maximizing entropy), we can achieve the same distribution discrimination capability with far fewer points, making KSD computation feasible for large-scale applications like GAN training. See `src/README.md` for more details on Phase 1 testing.
 
 ### Phase 2: Quantitative Evaluation (CIFAR-10)
 
