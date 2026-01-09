@@ -1,6 +1,8 @@
 # Accelerated Kernel Stein Discrepancy with Rényi Landmark Selection for Stable and Efficient GAN Training
 
 **Authors:** Michael Carlo, Giovanni Dettori, Ryan Gumsheimer  
+**Professor:** Austin J. Stromme
+
 **Date:** November 2025
 
 ## Repository Link
@@ -29,11 +31,11 @@ RenyiKSDforGANs/
 ├── PROPOSAL.md                        # Project proposal document
 ├── src/
 │   ├── notebooks/
-│   │   ├── ksd_gan_cifar10_training.ipynb    # Main training notebook
-│   │   ├── ksd_gan_cifar10_backup.ipynb      # Backup/alternative implementation
-│   │   └── RenyiKSDtorch.ipynb               # Additional experiments
-│   ├── renyiksd.py                    # Our Rényi KSD adaptation (original work)
-│   ├── score.py                       # Our score function utilities (original work)
+│   │   ├── ksd_gan_cifar10_training.ipynb    # Main training notebook (our implementation)
+│   │   ├── ksd_gan_cifar10_backup.ipynb      # Backup/alternative implementation (our implementation)
+│   │   └── RenyiKSDtorch.ipynb               # Additional experiments (our implementation)
+│   ├── renyiksd.py                    # Our Rényi KSD adaptation (original implementation)
+│   ├── score.py                       # Our score function utilities (original implementation)
 │   ├── goftest.py                     # Goodness-of-fit testing
 │   ├── test_renyiksd.py               # Unit tests
 │   ├── kgof/                          # Kernel goodness-of-fit library
@@ -54,6 +56,61 @@ As part of our research, we proposed replicating the GAN architecture as done in
    - Split into 50,000 training images and 10,000 test images
    - Available on Kaggle: https://www.kaggle.com/datasets/ayush1220/cifar10
    - Used as the main benchmark for real-world application scenarios
+
+## Main Results
+
+### Phase 1: Distribution Discrimination Testing
+
+**Motivation:** Standard Kernel Stein Discrepancy (KSD) computation has O(n²) complexity, which becomes prohibitively expensive for large datasets. We use the **Nyström acceleration method** to reduce this to O(m²) where m << n, by selecting only m landmark points instead of using all n points.
+
+**Our Contribution:** Instead of randomly selecting landmarks (as in the base Nyström-KSD implementation), we choose landmarks that **maximize entropy** to select the most informative points. This ensures we get the best approximation quality with fewer landmarks.
+
+**What we tested:**
+- **Base Nyström-KSD** (`src/goftest.py`): Uses random landmark selection (`rng.choice()`) - reduces complexity but landmarks may not be optimal
+- **Our Rényi-Nyström KSD** (`src/renyiksd.py`): Uses entropy-maximizing landmark selection (minimizes quadratic Rényi energy `1^T K 1`) - same O(m²) complexity but with more informative landmarks
+- **Goodness-of-fit testing** (`src/test_renyiksd.py`): Verified that our entropy-based selection can effectively distinguish distributions
+
+**Test Results:**
+- ✅ All tests passed
+- ✅ Rényi landmark selection successfully distinguishes distributions (H0 vs H1 hypothesis testing)
+- ✅ Validated that our method works before moving to GAN implementation
+- ✅ Achieved O(m²) complexity instead of O(n²) while maintaining discrimination power
+
+**Key Insight:** By selecting the most informative landmarks (maximizing entropy), we can achieve the same distribution discrimination capability with far fewer points, making KSD computation feasible for large-scale applications like GAN training. See `src/README.md` for more details on Phase 1 testing.
+
+### Phase 2: Quantitative Evaluation (CIFAR-10)
+
+After validating our Rényi landmark selection approach in Phase 1, we implemented the full GAN training pipeline in the notebooks. We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Distance (FID) and Kernel Inception Distance (KID):
+
+| Method | FID | KID |
+|--------|-----|-----|
+| **Standard GAN** | **104.02** | **0.0669** |
+| **KSD-GAN (Random Projection)** | 304.81 | 0.3159 |
+| **KSD-GAN (ResNet Features)** | Similar range | Similar range |
+
+**Key Findings:**
+- The standard GAN baseline achieved significantly better quantitative metrics (lower FID and KID indicate better quality)
+- KSD-GAN training showed higher loss values and more instability, particularly at low noise levels (small t values)
+- The Rényi-Nyström KSD implementation successfully reduced computational complexity from O(n²) to O(m²) where m << n
+- Training stability was improved through careful gradient flow management (gradients only through fake samples)
+
+### Qualitative Observations & Visual Results
+- **Training Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps (t < 100)
+- **Sample Quality:** Visual inspection showed that KSD-GAN samples were generated but with lower fidelity compared to standard GAN
+- **Computational Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost
+
+To evaluate the generative performance, we compared visual outputs across three configurations. While KSD-based methods successfully generated recognizable image patterns, the adversarial baseline remained superior in terms of high-frequency detail.
+
+| Training Method | Sample Generation | Qualitative Analysis |
+| :--- | :---: | :--- |
+| **KSD-GAN (Random Projection)** | <img src="https://github.com/user-attachments/assets/6da34f49-5f55-46cc-bd25-67622b083d92" width="300" /> | **Primary Result:** Successfully captures the global color distribution and basic shapes of CIFAR-10 classes. Our most stable KSD variant. |
+| **KSD-GAN (ResNet Features)** | <img src="https://github.com/user-attachments/assets/fc9b2c15-0491-416c-a458-0bf94e1580f8" width="300" /> | **Secondary Result:** Features from pre-trained ResNet-18 (after 3h training) resulted in lower fidelity and less structural coherence compared to random projection. |
+| **Standard GAN (Baseline)** | <img src="https://github.com/user-attachments/assets/37beb60a-24d1-4dcd-9544-8331eb9ecec6" width="300" /> | **Reference:** The adversarial discriminator produces the sharpest results, highlighting the performance gap our KSD approach aims to bridge. |
+
+**Summary of Findings:**
+* **Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps ($t < 100$).
+* **Fidelity:** Visual inspection confirms KSD-GAN samples are recognizable but have lower fidelity compared to standard GANs.
+* **Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost, making kernelized GAN training more feasible.
 
 ### Implementation Approach
 
@@ -86,8 +143,8 @@ As part of our research, we proposed replicating the GAN architecture as done in
 
 **Training Time Estimates:**
 - **KSD-GAN Training:** ~2-4 hours on a single GPU (depending on hardware and feature map choice)
-- **Standard GAN Training:** ~1-2 hours on a single GPU
-- **Evaluation (FID/KID):** ~30 minutes for 5,000 samples
+- **Standard GAN Training:** ~ minutes on a single GPU
+- **Evaluation (FID/KID):** ~ minutes for 5,000 samples
 
 ### What We Tried
 
@@ -127,30 +184,6 @@ During the project development, we experimented with several approaches and conf
 - **Sample Quality:** Quantitative metrics indicated standard GAN performed better, suggesting need for further optimization
 
 This iterative experimentation process helped us understand the trade-offs between computational efficiency, training stability, and sample quality in KSD-based GAN training.
-
-## Main Results
-
-### Quantitative Evaluation (CIFAR-10)
-
-We evaluated both KSD-GAN and standard GAN baselines using Fréchet Inception Distance (FID) and Kernel Inception Distance (KID):
-
-| Method | FID | KID |
-|--------|-----|-----|
-| **Standard GAN** | **104.02** | **0.0669** |
-| **KSD-GAN (Random Projection)** | 304.81 | 0.3159 |
-| **KSD-GAN (ResNet Features)** | Similar range | Similar range |
-
-**Key Findings:**
-- The standard GAN baseline achieved significantly better quantitative metrics (lower FID and KID indicate better quality)
-- KSD-GAN training showed higher loss values and more instability, particularly at low noise levels (small t values)
-- The Rényi-Nyström KSD implementation successfully reduced computational complexity from O(n²) to O(m²) where m << n
-- Training stability was improved through careful gradient flow management (gradients only through fake samples)
-
-### Qualitative Observations
-
-- **Training Stability:** KSD-GAN training exhibited occasional loss spikes, especially at low diffusion timesteps (t < 100)
-- **Sample Quality:** Visual inspection showed that KSD-GAN samples were generated but with lower fidelity compared to standard GAN
-- **Computational Efficiency:** The Nyström approximation with Rényi landmark selection successfully reduced computational cost
 
 ## Setup
 
@@ -245,6 +278,8 @@ The notebook includes evaluation code that:
 
 **Note on Code Development:** This code was developed with assistance from ChatGPT for implementation guidance. The core ideas and adaptations are our original work, with ChatGPT helping with implementation details and debugging.
 
+**All Notebooks:** All notebooks in `src/notebooks/` were implemented by us. They contain standalone PyTorch implementations that don't import from other source files in this repository.
+
 ### Original Implementation (Our Work)
 
 The following components were implemented from scratch for this project:
@@ -264,20 +299,22 @@ The following components were implemented from scratch for this project:
    - `load_cifar_batch()`: Utility for loading CIFAR-10 batches
    - **Note**: This is a standalone reference implementation. The notebooks contain inline PyTorch implementations.
 
-3. **Rényi-Nyström KSD Adaptation for GAN Training** (`src/notebooks/ksd_gan_cifar10_training.ipynb`):
-   - **This is our main original contribution** - adapting Nyström-KSD for GAN training
-   - Complete PyTorch implementation of Rényi-Nyström KSD with feature-space Stein kernels
-   - `RenyiNystroemKSD` class: PyTorch implementation optimized for GAN training
-   - `select_renyi_landmarks_stein()`: Rényi landmark selection for image data
-   - `score_fn_xt()`: Score function computation using pretrained DDPM
-   - Feature-space Stein kernel computation (random projection and ResNet features)
-   - Two-sample KSD estimator with gradient flow control
-   - Integration of KSD loss into GAN training loop
-   - Multi-timestep sampling strategy
-   - Feature normalization and bandwidth selection (median heuristic)
-   - MMD stabilizer implementation
-   - All training code, evaluation metrics, and visualizations
-   - **Note**: The notebooks contain standalone implementations. `src/renyiksd.py` and `src/score.py` are reference/utility implementations that can be used independently.
+3. **All Notebooks in `src/notebooks/`** (All implemented by us):
+   - **`ksd_gan_cifar10_training.ipynb`**: Main training notebook - **This is our main original contribution** - adapting Nyström-KSD for GAN training
+     - Complete PyTorch implementation of Rényi-Nyström KSD with feature-space Stein kernels
+     - `RenyiNystroemKSD` class: PyTorch implementation optimized for GAN training
+     - `select_renyi_landmarks_stein()`: Rényi landmark selection for image data
+     - `score_fn_xt()`: Score function computation using pretrained DDPM
+     - Feature-space Stein kernel computation (random projection and ResNet features)
+     - Two-sample KSD estimator with gradient flow control
+     - Integration of KSD loss into GAN training loop
+     - Multi-timestep sampling strategy
+     - Feature normalization and bandwidth selection (median heuristic)
+     - MMD stabilizer implementation
+     - All training code, evaluation metrics, and visualizations
+   - **`ksd_gan_cifar10_backup.ipynb`**: Backup/alternative implementation with similar functionality
+   - **`RenyiKSDtorch.ipynb`**: Additional experiments and testing
+   - **Note**: All notebooks contain standalone PyTorch implementations. `src/renyiksd.py` and `src/score.py` are reference/utility implementations that can be used independently.
 
 4. **Generator Architecture**:
    - Custom upsampling-based generator (UpBlock + GenX0)
