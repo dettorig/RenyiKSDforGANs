@@ -336,7 +336,7 @@ The following components were implemented from scratch for this project:
      - Adapted for two-sample testing between real and fake distributions
      - Integrated into PyTorch training loop with gradient flow control
      - Added Rényi landmark selection (inspired by their work but implemented for our use case)
-   - **Location of our adaptations:** All adaptations are in `src/notebooks/ksd_gan_cifar10_training.ipynb`
+   - **Location of our adaptations:** All adaptations are in `src/notebooks/`
    - **Original repository:** The `nystroem-ksd/` directory contains the original implementation from the paper authors
 
 2. **Kernel Goodness-of-Fit Library** (`src/kgof/` and `nystroem-ksd/lib/kernel-gof/`):
@@ -386,21 +386,23 @@ The following components were implemented from scratch for this project:
 
 ## Technical Details
 
+## Technical Details
+
 ### Rényi Landmark Selection
 
 The landmark selection minimizes the Rényi entropy approximation:
-\[
-E(\tilde{X}) = \frac{1}{m^2} 1_m^\top \Omega(\tilde{X}) 1_m
-\]
-where \(\Omega\) is the Stein kernel Gram matrix. This ensures diverse and informative landmark selection.
+
+$$E(\tilde{X}) = \frac{1}{m^2} \mathbf{1}_m^\top \Omega(\tilde{X}) \mathbf{1}_m$$
+
+where $\Omega$ is the Stein kernel Gram matrix. This ensures diverse and informative landmark selection.
 
 ### Nyström-KSD Estimator
 
-The full KSD has O(n²) complexity. The Nyström approximation projects onto a subspace spanned by m landmarks:
-\[
-\text{KSD}_N^2(Q, P) = \delta^T (H_{mm} + \lambda I)^{-1} \delta
-\]
-where \(\delta = \beta_{\text{fake}} - \beta_{\text{real}}\) and \(H_{mm}\) is the landmark-landmark kernel matrix.
+The full KSD has $O(n^2)$ complexity. The Nyström approximation projects onto a subspace spanned by $m$ landmarks:
+
+$$\text{KSD}_N^2(Q, P) = \delta^T (H_{mm} + \lambda I)^{-1} \delta$$
+
+where $\delta = \beta_{\text{fake}} - \beta_{\text{real}}$ and $H_{mm}$ is the landmark-landmark kernel matrix.
 
 ### Feature Maps
 
@@ -427,7 +429,7 @@ Two feature map implementations:
 1. **Kalinke, F., Szabó, Z., Sriperumbudur, B. K.** (2025). *Nyström Kernel Stein Discrepancy*. AISTATS 2025.  
    - Repository: [https://github.com/FlopsKa/nystroem-ksd](https://github.com/FlopsKa/nystroem-ksd)
    - Original Nyström-KSD implementation repository included in `nystroem-ksd/` directory
-   - Our adaptation for GAN training is in `src/notebooks/ksd_gan_cifar10_training.ipynb`
+   - Our adaptation for GAN training is in `src/notebooks/`
 
 2. **Goodfellow, I., et al.** (2014). *Generative Adversarial Nets*. NIPS 2014.
 
@@ -441,9 +443,6 @@ Two feature map implementations:
 
 6. **Krizhevsky, A., Hinton, G.** (2009). *Learning Multiple Layers of Features from Tiny Images*. Technical Report, University of Toronto.
 
-## License
-
-This project is for academic research purposes. Please refer to individual library licenses for dependencies.
 
 ## Contact
 
