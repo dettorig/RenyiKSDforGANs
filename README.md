@@ -33,7 +33,6 @@ RenyiKSDforGANs/
 │   ├── notebooks/
 │   │   ├── ksd_gan_cifar10_training.ipynb    # Main training notebook (our implementation)
 │   ├── renyiksd.py                    # Our Rényi KSD adaptation (original implementation)
-│   ├── score.py                       # Our score function utilities (original implementation)
 │   ├── goftest.py                     # Goodness-of-fit testing
 │   ├── test_renyiksd.py               # Unit tests
 │   ├── kgof/                          # Kernel goodness-of-fit library
@@ -289,20 +288,12 @@ The following components were implemented from scratch for this project:
    - Adapted from the base Nyström-KSD implementation for our GAN training use case
    - **Note**: This is a NumPy-based reference implementation. The notebooks contain standalone PyTorch implementations.
 
-2. **Score Function Utilities** (`src/score.py`):
-   - **Our implementation** for computing DDPM score functions
-   - `score_fn()`: Computes score function ∇ log p_t(x_t) using pretrained DDPM
-   - `map_sigma_to_t()`: Maps noise level σ to diffusion timestep t
-   - `score_from_noise_pred()`: Converts noise prediction to score
-   - `load_cifar_batch()`: Utility for loading CIFAR-10 batches
-   - **Note**: This is a standalone reference implementation. The notebooks contain inline PyTorch implementations.
-
-3. **All Notebooks in `src/notebooks/`** (All implemented by us):
+2. **All Notebooks in `src/notebooks/`** (All implemented by us):
    - **`ksd_gan_cifar10_training.ipynb`**: Main training notebook - **This is our main original contribution** - adapting Nyström-KSD for GAN training
      - Complete PyTorch implementation of Rényi-Nyström KSD with feature-space Stein kernels
      - `RenyiNystroemKSD` class: PyTorch implementation optimized for GAN training
      - `select_renyi_landmarks_stein()`: Rényi landmark selection for image data
-     - `score_fn_xt()`: Score function computation using pretrained DDPM
+     - `score_fn_xt()`: Score function computation using pretrained DDPM (implemented inline)
      - Feature-space Stein kernel computation (random projection and ResNet features)
      - Two-sample KSD estimator with gradient flow control
      - Integration of KSD loss into GAN training loop
@@ -310,7 +301,7 @@ The following components were implemented from scratch for this project:
      - Feature normalization and bandwidth selection (median heuristic)
      - MMD stabilizer implementation
      - All training code, evaluation metrics, and visualizations
-   - **Note**: All notebooks contain standalone PyTorch implementations. `src/renyiksd.py` and `src/score.py` are reference/utility implementations that can be used independently.
+   - **Note**: All notebooks contain standalone PyTorch implementations. `src/renyiksd.py` is a reference implementation that can be used independently.
 
 4. **Generator Architecture**:
    - Custom upsampling-based generator (UpBlock + GenX0)

@@ -32,7 +32,6 @@ src/
 ├── kgof/                   # Kernel goodness-of-fit library (adapted)
 ├── rfsd/                   # Random feature Stein discrepancies (adapted)
 ├── renyiksd.py            # Phase 1: Our Rényi KSD implementation (NumPy)
-├── score.py               # Score function utilities (original work)
 ├── goftest.py             # Base Nyström-KSD with random selection
 └── test_renyiksd.py       # Phase 1: Tests comparing Rényi vs random selection
 ```
@@ -57,11 +56,6 @@ src/
     - H0: Sample follows distribution p → should NOT reject (p-value > 0.2)
     - H1: Sample from shifted distribution → should reject (p-value < 0.05)
   - **All tests passed** ✅
-
-### Supporting Files
-
-- **`score.py`**: Score function utilities for DDPM models
-  - Used for testing and as reference implementation
 
 ### Supporting Libraries (Adapted)
 

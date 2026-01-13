@@ -30,7 +30,7 @@ This is the main notebook containing:
   - Feature maps (RandomProjection, FrozenResNetFeatureMap)
 - Implements feature-space Stein kernels for image data
 - Contains the complete training pipeline from data loading to evaluation
-- **Note**: The notebooks are self-contained. `src/renyiksd.py` and `src/score.py` are reference implementations that can be used independently.
+- **Note**: The notebooks are self-contained. `src/renyiksd.py` is a reference implementation that can be used independently.
 
 ## Running the Notebooks
 
