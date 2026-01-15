@@ -371,25 +371,6 @@ The following components were implemented from scratch for this project:
    - **Why:** Training at multiple noise levels improves coverage
    - **Implementation:** Mixture sampler that focuses increasingly on low noise levels (small t) as training progresses
 
-## Technical Details
-
-## Technical Details
-
-### Rényi Landmark Selection
-
-The landmark selection minimizes the Rényi entropy approximation:
-
-$$E(\tilde{X}) = \frac{1}{m^2} \mathbf{1}_m^\top \Omega(\tilde{X}) \mathbf{1}_m$$
-
-where $\Omega$ is the Stein kernel Gram matrix. This ensures diverse and informative landmark selection.
-
-### Nyström-KSD Estimator
-
-The full KSD has $O(n^2)$ complexity. The Nyström approximation projects onto a subspace spanned by $m$ landmarks:
-
-$$\text{KSD}_N^2(Q, P) = \delta^T (H_{mm} + \lambda I)^{-1} \delta$$
-
-where $\delta = \beta_{\text{fake}} - \beta_{\text{real}}$ and $H_{mm}$ is the landmark-landmark kernel matrix.
 
 ### Feature Maps
 
@@ -413,22 +394,33 @@ Two feature map implementations:
 
 ## References
 
-1. **Kalinke, F., Szabó, Z., Sriperumbudur, B. K.** (2025). *Nyström Kernel Stein Discrepancy*. AISTATS 2025.  
+1. **Kalinke, F., Szabó, Z., and Sriperumbudur, B. K.** (2025). *Nyström Kernel Stein Discrepancy*. In Proceedings of the 28th International Conference on Artificial Intelligence and Statistics (AISTATS), volume 258 of Proceedings of Machine Learning Research. PMLR.
    - Repository: [https://github.com/FlopsKa/nystroem-ksd](https://github.com/FlopsKa/nystroem-ksd)
-   - Original Nyström-KSD implementation repository included in `nystroem-ksd/` directory
-   - Our adaptation for GAN training is in `src/notebooks/`
+   - Original Nyström-KSD implementation included in `nystroem-ksd/` directory.
 
-2. **Goodfellow, I., et al.** (2014). *Generative Adversarial Nets*. NIPS 2014.
+2. **Cribeiro-Ramallo, J., Aich, A., Kalinke, F., Aich, A. B., and Szabó, Z.** (2025). *The Minimax Lower Bound of Kernel Stein Discrepancy Estimation*. arXiv preprint.
 
-3. **Liu, Q., et al.** (2016). *A Kernelized Stein Discrepancy for Goodness-of-fit Tests*. ICML 2016.
+3. **Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., Courville, A., and Bengio, Y.** (2014). *Generative Adversarial Networks*. NIPS 2014.
 
-4. **Jitkrittum, W., et al.** (2017). *A Linear-Time Kernel Goodness-of-Fit Test*. NIPS 2017.  
-   - Kernel goodness-of-fit library: https://github.com/wittawatj/kernel-gof
+4. **Heusel, M., Ramsauer, H., Unterthiner, T., Nessler, B., and Hochreiter, S.** (2017). *GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium*. In Advances in Neural Information Processing Systems (NIPS), volume 30.
 
-5. **Huggins, J. H., Mackey, L.** (2018). *Random Feature Stein Discrepancies*. NIPS 2018.  
-   - Repository: https://bitbucket.org/jhhuggins/random-feature-stein-discrepancies/
+5. **Liu, Q., Lee, J., and Jordan, M.** (2016). *A Kernelized Stein Discrepancy for Goodness-of-fit Tests*. ICML 2016.
 
-6. **Krizhevsky, A., Hinton, G.** (2009). *Learning Multiple Layers of Features from Tiny Images*. Technical Report, University of Toronto.
+6. **Jitkrittum, W., Szabó, Z., Chwialkowski, K. P., and Gretton, A.** (2017). *A Linear-Time Kernel Goodness-of-Fit Test*. NIPS 2017.
+   - Kernel goodness-of-fit library: [https://github.com/wittawatj/kernel-gof](https://github.com/wittawatj/kernel-gof)
+
+7. **Huggins, J. H. and Mackey, L.** (2018). *Random Feature Stein Discrepancies*. NIPS 2018.
+   - Repository: [https://bitbucket.org/jhhuggins/random-feature-stein-discrepancies/](https://bitbucket.org/jhhuggins/random-feature-stein-discrepancies/)
+
+8. **Krizhevsky, A. and Geoffrey Hinton, G.** (2009). *Learning Multiple Layers of Features from Tiny Images*. Technical report, University of Toronto.
+
+9. **Radford, A., Metz, L., and Chintala, S.** (2016). *Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks*. ICLR 2016.
+
+10. **Bińkowski, M., Sutherland, D. J., Arbel, M., and Gretton, A.** (2021). *Demystifying MMD GANs*.
+
+11. **Wang, Z., Zheng, H., He, P., Chen, W., and Zhou, M.** (2023). *Diffusion-GAN: Training GANs with Diffusion*.
+
+12. **Girolami, M.** (2002). *Orthogonal Series Density Estimation and the Kernel Eigenvalue Problem*. Neural Computation, 14(3):669–688.
 
 
 ## Contact
